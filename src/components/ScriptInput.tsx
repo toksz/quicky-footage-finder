@@ -9,10 +9,11 @@ import { toast } from '@/components/ui/use-toast';
 interface ScriptInputProps {
   value: string;
   onChange: (value: string) => void;
+  keywords: string[];
+  setKeywords: (keywords: string[]) => void;
 }
 
-export const ScriptInput = ({ value, onChange }: ScriptInputProps) => {
-  const [keywords, setKeywords] = useState<string[]>([]);
+export const ScriptInput = ({ value, onChange, keywords, setKeywords }: ScriptInputProps) => {
   const [editingKeyword, setEditingKeyword] = useState<{ index: number; value: string } | null>(null);
 
   const generateKeywords = async () => {
@@ -25,14 +26,34 @@ export const ScriptInput = ({ value, onChange }: ScriptInputProps) => {
       return;
     }
 
-    // This is a mock implementation. In a real app, you'd call your AI service
-    const mockKeywords = value
-      .toLowerCase()
-      .split(' ')
+    // Extract meaningful words from the script
+    const words = value.toLowerCase()
+      .replace(/[^\w\s]/g, '')
+      .split(/\s+/)
       .filter(word => word.length > 3)
-      .slice(0, 5);
+      .filter(word => !['this', 'that', 'then', 'than', 'with', 'would', 'could', 'should'].includes(word));
+
+    // Count word frequency
+    const wordCount = words.reduce((acc: Record<string, number>, word) => {
+      acc[word] = (acc[word] || 0) + 1;
+      return acc;
+    }, {});
+
+    // Sort by frequency and get top words
+    const sortedWords = Object.entries(wordCount)
+      .sort(([, a], [, b]) => b - a)
+      .slice(0, 8)
+      .map(([word]) => word);
+
+    // Add some common stock footage categories based on context
+    const commonCategories = ['nature', 'business', 'technology', 'lifestyle', 'urban'];
+    const contextualKeywords = commonCategories.filter(category => 
+      value.toLowerCase().includes(category)
+    );
+
+    const finalKeywords = [...new Set([...sortedWords, ...contextualKeywords])];
+    setKeywords(finalKeywords);
     
-    setKeywords(mockKeywords);
     toast({
       title: "Success",
       description: "Keywords generated successfully",
