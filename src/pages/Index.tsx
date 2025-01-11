@@ -4,7 +4,17 @@ import { MediaSettings } from '@/components/MediaSettings';
 import { VideoSettings } from '@/components/VideoSettings';
 import { GenerationProgress } from '@/components/GenerationProgress';
 import { ApiSettings } from '@/components/ApiSettings';
+import { MediaResults } from '@/components/MediaResults';
 import { useToast } from '@/components/ui/use-toast';
+
+interface MediaItem {
+  id: string;
+  thumbnail: string;
+  url: string;
+  title: string;
+  source: 'pixabay' | 'pexels';
+  type: 'image' | 'video';
+}
 
 const Index = () => {
   const { toast } = useToast();
@@ -19,6 +29,8 @@ const Index = () => {
     pixabay: '',
     pexels: '',
   });
+  const [isSearching, setIsSearching] = useState(false);
+  const [searchResults, setSearchResults] = useState<Record<string, MediaItem[]>>({});
 
   const handleApiKeyChange = (key: keyof typeof apiKeys, value: string) => {
     setApiKeys((prev) => ({ ...prev, [key]: value }));
@@ -29,6 +41,39 @@ const Index = () => {
       title: 'API Keys Saved',
       description: 'Your API keys have been saved successfully.',
     });
+  };
+
+  const handleSearch = async () => {
+    if (!apiKeys.pixabay && !apiKeys.pexels) {
+      toast({
+        title: 'Missing API Keys',
+        description: 'Please provide at least one API key to search for media.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    setIsSearching(true);
+    // TODO: Implement actual API calls to Pixabay and Pexels
+    // For now, we'll use mock data
+    const mockResults: Record<string, MediaItem[]> = {
+      'nature': [
+        {
+          id: '1',
+          thumbnail: 'https://picsum.photos/400/300',
+          url: 'https://picsum.photos/800/600',
+          title: 'Beautiful Nature',
+          source: 'pixabay',
+          type: 'image',
+        },
+        // Add more mock items as needed
+      ],
+    };
+
+    // Simulate API delay
+    await new Promise(resolve => setTimeout(resolve, 1500));
+    setSearchResults(mockResults);
+    setIsSearching(false);
   };
 
   const stages = [
@@ -78,8 +123,13 @@ const Index = () => {
               type={mediaType}
               onSourceChange={setMediaSource}
               onTypeChange={setMediaType}
+              onSearch={handleSearch}
+              isSearching={isSearching}
             />
             <GenerationProgress stages={stages} />
+            {Object.keys(searchResults).length > 0 && (
+              <MediaResults results={searchResults} />
+            )}
           </div>
         </div>
       </div>

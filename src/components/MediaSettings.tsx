@@ -1,12 +1,15 @@
 import React from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Search } from 'lucide-react';
 
 interface MediaSettingsProps {
   source: 'pixabay' | 'pexels' | 'both';
   type: 'images' | 'videos' | 'both';
   onSourceChange: (source: 'pixabay' | 'pexels' | 'both') => void;
   onTypeChange: (type: 'images' | 'videos' | 'both') => void;
+  onSearch: () => void;
+  isSearching?: boolean;
 }
 
 export const MediaSettings = ({
@@ -14,10 +17,22 @@ export const MediaSettings = ({
   type,
   onSourceChange,
   onTypeChange,
+  onSearch,
+  isSearching = false,
 }: MediaSettingsProps) => {
   return (
     <Card className="bg-accent/50 p-6 space-y-6">
-      <h2 className="text-xl font-semibold">Media Settings</h2>
+      <div className="flex justify-between items-center">
+        <h2 className="text-xl font-semibold">Media Settings</h2>
+        <Button
+          onClick={onSearch}
+          disabled={isSearching}
+          className="gap-2"
+        >
+          <Search className="w-4 h-4" />
+          {isSearching ? 'Searching...' : 'Search'}
+        </Button>
+      </div>
       
       <div className="space-y-4">
         <div className="space-y-2">
