@@ -13,7 +13,7 @@ const Index = () => {
   const [mediaType, setMediaType] = useState<'images' | 'videos' | 'both'>('both');
   const [duration, setDuration] = useState(30);
   const [format, setFormat] = useState<'9:16' | '16:9'>('9:16');
-  const [model, setModel] = useState('gemini');
+  const [model, setModel] = useState('gemini-1.5-pro');
   const [apiKeys, setApiKeys] = useState({
     google: '',
     pixabay: '',
@@ -25,7 +25,6 @@ const Index = () => {
   };
 
   const handleSaveKeys = () => {
-    // In a real app, you'd want to store these securely
     toast({
       title: 'API Keys Saved',
       description: 'Your API keys have been saved successfully.',
