@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { toast } from '@/components/ui/use-toast';
+import { Sparkles } from 'lucide-react';
 
 interface ScriptInputProps {
   value: string;
@@ -15,6 +16,7 @@ interface ScriptInputProps {
 
 export const ScriptInput = ({ value, onChange, keywords, setKeywords }: ScriptInputProps) => {
   const [editingKeyword, setEditingKeyword] = useState<{ index: number; value: string } | null>(null);
+  const [isOptimizing, setIsOptimizing] = useState(false);
 
   const generateKeywords = async () => {
     if (!value.trim()) {
@@ -60,8 +62,65 @@ export const ScriptInput = ({ value, onChange, keywords, setKeywords }: ScriptIn
     });
   };
 
+  const optimizeKeywords = async () => {
+    if (keywords.length === 0) {
+      toast({
+        title: "Error",
+        description: "Please generate keywords first",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsOptimizing(true);
+    try {
+      const response = await fetch('https://api.perplexity.ai/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('pplx_api_key')}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: 'llama-3.1-sonar-small-128k-online',
+          messages: [
+            {
+              role: 'system',
+              content: 'You are a keyword optimization expert. Your task is to analyze the given script and keywords, then suggest the best stock footage keywords that would yield good results on platforms like Pixabay and Pexels. Focus on visual concepts and commonly used tags.'
+            },
+            {
+              role: 'user',
+              content: `Script: "${value}"\n\nCurrent keywords: ${keywords.join(', ')}\n\nPlease suggest 8-10 optimized keywords that would work well for finding stock footage, separated by commas.`
+            }
+          ],
+          temperature: 0.2,
+        }),
+      });
+
+      const data = await response.json();
+      const suggestedKeywords = data.choices[0].message.content
+        .split(',')
+        .map((k: string) => k.trim().toLowerCase())
+        .filter((k: string) => k.length > 0);
+
+      setKeywords(suggestedKeywords);
+      toast({
+        title: "Success",
+        description: "Keywords optimized successfully",
+      });
+    } catch (error) {
+      console.error('Error optimizing keywords:', error);
+      toast({
+        title: "Error",
+        description: "Failed to optimize keywords. Please check your API key.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsOptimizing(false);
+    }
+  };
+
   const deleteKeyword = (index: number) => {
-    setKeywords(prev => prev.filter((_, i) => i !== index));
+    setKeywords(keywords.filter((_, i) => i !== index));
   };
 
   const startEditing = (index: number, keyword: string) => {
@@ -98,7 +157,19 @@ export const ScriptInput = ({ value, onChange, keywords, setKeywords }: ScriptIn
       
       {keywords.length > 0 && (
         <div className="space-y-2">
-          <label className="text-sm text-foreground/70">Generated Keywords</label>
+          <div className="flex justify-between items-center">
+            <label className="text-sm text-foreground/70">Generated Keywords</label>
+            <Button
+              onClick={optimizeKeywords}
+              disabled={isOptimizing}
+              size="sm"
+              variant="outline"
+              className="gap-2"
+            >
+              <Sparkles className="w-4 h-4" />
+              {isOptimizing ? 'Optimizing...' : 'Optimize Keywords'}
+            </Button>
+          </div>
           <div className="flex flex-wrap gap-2">
             {keywords.map((keyword, index) => (
               editingKeyword?.index === index ? (

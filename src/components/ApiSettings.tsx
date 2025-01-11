@@ -18,8 +18,9 @@ interface ApiSettingsProps {
     google: string;
     pixabay: string;
     pexels: string;
+    pplx: string;
   };
-  onApiKeyChange: (key: keyof typeof apiKeys, value: string) => void;
+  onApiKeyChange: (key: keyof ApiSettingsProps['apiKeys'], value: string) => void;
 }
 
 export const ApiSettings = ({
@@ -52,7 +53,7 @@ export const ApiSettings = ({
           </Select>
         </div>
 
-        {['google', 'pixabay', 'pexels'].map((key) => (
+        {['google', 'pixabay', 'pexels', 'pplx'].map((key) => (
           <div key={key} className="space-y-2">
             <label className="text-sm text-foreground/70 capitalize">
               {key} API Key
